@@ -10,6 +10,7 @@
    [reitit.ring.middleware.parameters :as parameters]
    ;; [sandbox.middleware.formats :as formats]
    [sandbox.tokens :as tokens]
+   [sandbox.tasks :as tasks]
    [ring.util.http-response :refer :all]
    [clojure.java.io :as io]))
 
@@ -57,24 +58,19 @@
             :handler (fn [{{{:keys [username password]} :body} :parameters}]
                        (if-let [token (tokens/create-token-for-user username)]
                          {:status 200 :body {:token token}}
-                         {:status 404 :body {:error "username not found"}}))}
+                         {:status 404 :body {:error "Username not found"}}))}
      }]
 
-   ["/math"
-    {:swagger {:tags ["math"]}}
-
-    ["/plus"
-     {:get {:summary "plus with spec query parameters"
-            :parameters {:query {:x int?, :y int?}}
-            :responses {200 {:body {:total pos-int?}}}
-            :handler (fn [{{{:keys [x y]} :query} :parameters}]
-                       {:status 200
-                        :body {:total (+ x y)}})}
-      :post {:summary "plus with spec body parameters"
-             :parameters {:body {:x int?, :y int?}}
-             :responses {200 {:body {:total pos-int?}}}
-             :handler (fn [{{{:keys [x y]} :body} :parameters}]
-                        {:status 200
-                         :body {:total (+ x y)}})}}]]
+   ["/tasks"
+    {:get {:summary "Return all tasks for a user identified by token"
+           :handler (fn [{{:strs [authorization]} :headers}]
+                      (if authorization
+                        (let [token (last (clojure.string/split authorization #" "))
+                              tasks (tasks/get-user-tasks token)]
+                          (if tasks
+                            {:status 200 :body {:tasks tasks}}
+                            {:status 404 :body {:error "Invalid token"}}))
+                        {:status 403 :body {:error "Token missing"}}))}
+     }]
 
    ])

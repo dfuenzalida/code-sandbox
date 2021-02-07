@@ -40,3 +40,18 @@ WHERE token = :token
 -- :doc retrieve the username for a given token, if any
 SELECT email FROM users
 WHERE id in (SELECT user_id FROM tokens WHERE token = :token)
+
+-- :name create-task! :! :n
+-- :doc creates a new task for a given user id and data
+INSERT INTO tasks
+(user_id, name, state, lang, code, created_date)
+VALUES (:user_id, :name, '0', :lang, :code, now())
+
+-- :name get-tasks-for-user :? :*
+-- :doc find the tasks for a given user-id
+SELECT * FROM tasks
+WHERE user_id = :user_id
+
+-- :name all-tasks :? :*
+-- :doc get all tasks
+SELECT * from tasks
