@@ -4,6 +4,21 @@
             [sandbox.tokens :as tokens]
             [sandbox.db.core :as db]))
 
+(defn pascal-case
+  "Produces a pascalCaseString out of another string"
+  [s]
+  (let [[fst & rst] (split s #"[\W_]")]
+    (reduce str fst (map capitalize rst))))
+
+(defn pascal-keys
+  "Given a map with keys on :kebab-case into keys in :pascalCase"
+  [m]
+  (->> (map (fn [[k v]] [(-> k name pascal-case keyword) v]) m)
+       (into {})))
+
+;; (pascal-case "words separated_by-things")
+;; (pascal-keys {:one-two_three 123 :four-five 45})
+
 (def task-keys
   [:code :created_date :end_date :exit_code :id :lang :name :started_date
    :state :stdout :sterr])
@@ -19,22 +34,9 @@
   (when-let [user_id (->> {:token token} db/get-token :user_id)]
     (let [task (assoc m :user_id user_id)
           task-id-map (first (db/create-task! task))]
-      (merge task task-id-map))))
-
-(defn pascal-case
-  "Produces a pascalCaseString out of another string"
-  [s]
-  (let [[fst & rst] (split s #"[\W_]")]
-    (reduce str fst (map capitalize rst))))
-
-(defn pascal-keys
-  "Given a map with keys on :kebab-case into keys in :pascalCase"
-  [m]
-  (->> (map (fn [[k v]] [(-> k name pascal-case keyword) v]) m)
-       (into {})))
-
-;; (pascal-case "words separated_by-things")
-;; (pascal-keys {:one-two_three 123 :four-five 45})
+      (-> (db/get-task task-id-map)
+          (select-keys task-keys)
+          pascal-keys))))
 
 (comment
   (db/get-user {:id 1})
