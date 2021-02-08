@@ -4,16 +4,22 @@
             [sandbox.tokens :as tokens]
             [sandbox.db.core :as db]))
 
+(def task-keys
+  [:code :created_date :end_date :exit_code :id :lang :name :started_date
+   :state :stdout :sterr])
+
 (defn get-user-tasks [token]
   (when-let [user_id  (->> {:token token} db/get-token :user_id)]
-    (let [db_tasks (->> {:user_id user_id} db/get-tasks-for-user)]
-      db_tasks)))
+    (let [tasks (db/get-tasks-for-user {:user_id user_id})]
+      (->> (map #(select-keys % task-keys) tasks)
+           (mapv pascal-keys)))))
 
 ;; TODO implement task validation w/schema
 (defn create-task [token m]
   (when-let [user_id (->> {:token token} db/get-token :user_id)]
-    (let [task (assoc m :user_id user_id)]
-      (db/create-task! task))))
+    (let [task (assoc m :user_id user_id)
+          task-id-map (first (db/create-task! task))]
+      (merge task task-id-map))))
 
 (defn pascal-case
   "Produces a pascalCaseString out of another string"
@@ -37,6 +43,7 @@
 
   (get-user-tasks token)
 
+  (create-task token {:code "code1" :lang "lang1" :name "name1"})
   (->> {:token token} db/get-token :user_id)
 
   (db/get-token {:token token})

@@ -41,7 +41,7 @@ WHERE token = :token
 SELECT email FROM users
 WHERE id in (SELECT user_id FROM tokens WHERE token = :token)
 
--- :name create-task! :! :n
+-- :name create-task! :i! :raw
 -- :doc creates a new task for a given user id and data
 INSERT INTO tasks
 (user_id, name, state, lang, code, created_date)
