@@ -71,6 +71,24 @@
                             {:status 200 :body {:tasks tasks}}
                             {:status 404 :body {:error "Invalid token"}}))
                         {:status 403 :body {:error "Token missing"}}))}
+
+     :post {:summary "Create a new task for a user identified by token"
+            :parameters {:headers {:authorization string?}
+                         :body {:name string?
+                                :code string?
+                                :lang string?}}
+            :handler (fn [req]
+                       (let [{{:strs [authorization]} :headers} req
+                             task-req (-> req :parameters :body)]
+                         (if authorization
+                           (let [token (last (clojure.string/split authorization #" "))]
+                             ;; TODO get the newly created task ID in create-task
+                             (if-let [created (tasks/create-task token task-req)]
+                               (let [task (-> (tasks/get-user-tasks token)
+                                              last tasks/pascal-keys)]
+                                 {:status 200 :body task})
+                               {:status 404 :body {:error "Invalid token"}}))
+                           {:status 403 :body {:error "Token missing"}})))}
      }]
 
    ])
