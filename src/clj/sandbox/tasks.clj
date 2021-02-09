@@ -1,6 +1,7 @@
 (ns sandbox.tasks
   (:require [clojure.tools.logging :as log]
             [clojure.string :refer [capitalize split]]
+            [sandbox.task-service :as ts]
             [sandbox.tokens :as tokens]
             [sandbox.db.core :as db]))
 
@@ -23,6 +24,9 @@
   [:code :created_date :end_date :exit_code :id :lang :name :started_date
    :state :stdout :sterr])
 
+(def task-statse
+  [:CREATED :QUEUED :RUNNING :COMPLETE])
+
 (defn get-user-tasks [token]
   (when-let [user_id  (->> {:token token} db/get-token :user_id)]
     (let [tasks (db/get-tasks-for-user {:user_id user_id})]
@@ -32,8 +36,12 @@
 ;; TODO implement task validation w/schema
 (defn create-task [token m]
   (when-let [user_id (->> {:token token} db/get-token :user_id)]
-    (let [task (assoc m :user_id user_id)
+    (let [task (merge m {:user_id user_id :state "CREATED"})
           task-id-map (first (db/create-task! task))]
+      ;; run the task
+      (ts/create-and-run-task user_id (:id task-id-map))
+
+      ;; return the task
       (-> (db/get-task task-id-map)
           (select-keys task-keys)
           pascal-keys))))
