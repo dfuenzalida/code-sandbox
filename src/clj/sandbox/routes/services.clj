@@ -82,7 +82,6 @@
                              task-req (-> req :parameters :body)]
                          (if authorization
                            (let [token (last (clojure.string/split authorization #" "))]
-                             ;; TODO get the newly created task ID in create-task
                              (if-let [created (tasks/create-task token task-req)]
                                {:status 200 :body created}
                                {:status 404 :body {:error "Invalid token"}}))
