@@ -45,7 +45,7 @@ WHERE id in (SELECT user_id FROM tokens WHERE token = :token)
 -- :doc creates a new task for a given user id and data
 INSERT INTO tasks
 (user_id, name, state, lang, code, created_date)
-VALUES (:user_id, :name, '0', :lang, :code, now())
+VALUES (:user_id, :name, :state, :lang, :code, now())
 
 -- :name get-task :? :1
 -- :doc find the tasks for a given user-id
