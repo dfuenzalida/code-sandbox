@@ -6,10 +6,10 @@ CREATE TABLE tasks
  lang VARCHAR(30),
  code VARCHAR(65000),
  stdout VARCHAR(65000),
- sterr VARCHAR(65000),
+ stderr VARCHAR(65000),
  exit_code INT,
- created_date TIMESTAMP,
- started_date TIMESTAMP,
- end_date TIMESTAMP,
+ created TIMESTAMP,
+ started TIMESTAMP,
+ finished TIMESTAMP,
  foreign key (user_id) references users(id));
 

@@ -44,7 +44,7 @@ WHERE id in (SELECT user_id FROM tokens WHERE token = :token)
 -- :name create-task! :i! :raw
 -- :doc creates a new task for a given user id and data
 INSERT INTO tasks
-(user_id, name, state, lang, code, created_date)
+(user_id, name, state, lang, code, created)
 VALUES (:user_id, :name, :state, :lang, :code, now())
 
 -- :name get-task :? :1
@@ -56,6 +56,21 @@ WHERE id = :id
 -- :doc find the tasks for a given user-id
 SELECT * FROM tasks
 WHERE user_id = :user_id
+
+-- :name update-task-status :? :1
+-- :doc update the status of a task identified by its id
+UPDATE tasks SET state = :state WHERE id = :id
+
+-- :name start-task :? :1
+-- :doc update the status and started timestamp of a task identified by its id
+UPDATE tasks SET state = 'RUNNING', started = now() WHERE id = :id
+
+-- :name end-task :? :1
+-- :doc update a task to finished with exit code, stderr and stdout
+UPDATE tasks
+SET state = 'FINISHED', exit_code = :exit-code, stderr = :stderr,
+stdout = :stdout, finished = now()
+WHERE id = :id
 
 -- :name all-tasks :? :*
 -- :doc get all tasks

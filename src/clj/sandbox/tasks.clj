@@ -21,8 +21,7 @@
 ;; (pascal-keys {:one-two_three 123 :four-five 45})
 
 (def task-keys
-  [:code :created_date :end_date :exit_code :id :lang :name :started_date
-   :state :stdout :sterr])
+  [:code :created :finished :exit_code :id :lang :name :started :state :stdout :stderr])
 
 (def task-statse
   [:CREATED :QUEUED :RUNNING :COMPLETE])
@@ -51,7 +50,7 @@
   (def token (tokens/create-token-for-user "demo@example.com"))
   (tokens/user-by-token token)
 
-  (get-user-tasks token)
+  (first (get-user-tasks token))
 
   (create-task token {:code "code1" :lang "lang1" :name "name1"})
   (->> {:token token} db/get-token :user_id)
