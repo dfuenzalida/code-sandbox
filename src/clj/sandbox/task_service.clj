@@ -1,15 +1,19 @@
 (ns sandbox.task-service
-  (:require [clojure.tools.logging :as log]
+  (:require [clojure.java.io :as io]
+            [clojure.tools.logging :as log]
             [mount.core :as mount]
             [sandbox.db.core :as db])
-  (:import [java.util.concurrent Executors ExecutorService]))
+  (:import [java.nio.file Files Paths]
+           [java.util.concurrent Executors ExecutorService]))
 
+;; TODO move to config file
+(def timeout 10)
+(def pool-size 3)
 (def executor-service (atom nil))
 
 (defn create-service []
-  (let [pool-size 3] ;; TODO expose pool size in config file
-    (log/info (format "Creating a fixed pool of %d executors for tasks" pool-size))
-    (reset! executor-service (Executors/newFixedThreadPool 3))))
+  (log/infof "Creating a fixed pool of %d executors for tasks" pool-size)
+  (reset! executor-service (Executors/newFixedThreadPool pool-size)))
 
 (defn stop-service []
   (when @executor-service
@@ -20,34 +24,79 @@
   :start (create-service)
   :stop  (stop-service))
 
-;; (.submit @executor-service #(log/info "My task"))
+(defn task-dir [task-id]
+  (format "/tmp/code-sandbox/%s" task-id))
+
+(defn write-task-script! [task-id task-code]
+  (try
+    (let [dir  (task-dir task-id)
+          task-file (format "%s/script.groovy" dir)]
+      (log/infof "Creating directory for task #%s on %s" task-id dir)
+      (io/make-parents task-file)
+      (log/infof "Writing script for task #%s" task-id)
+      (spit task-file task-code))
+    (catch Exception ex (log/warn "Exception:" ex))))
+
+(defn process-args [task-id lang]
+  (let [volume (format "%s:/groovyScripts:ro" (task-dir task-id))]
+    ["docker" "run" "--rm" "--network" "host" "-v" volume
+     "-w" "/groovyScripts" "groovy" "timeout" (str timeout)
+     lang "/groovyScripts/script.groovy"]))
+
+(defn delete-task-script! [task-id]
+  (try
+    (let [dir (task-dir task-id)
+          dir-path (Paths/get dir (into-array String []))
+          script (format "%s/script.groovy" dir)
+          script-path (Paths/get script (into-array String []))]
+      (log/infof "Deleting script for task #%s" task-id)
+      (Files/delete script-path)
+      (log/infof "Deleting directory for task #%s" task-id)
+      (Files/delete dir-path))
+    (catch Exception ex (log/warn ex))))
+
+;; (delete-task-script! 8)
+
+(defn run-process [task-id lang]
+  (let [builder-args (process-args task-id lang)
+        _ (log/infof "Starting process for task #%s with timeout of %s seconds"
+                     task-id timeout)
+        builder (ProcessBuilder. (into-array String builder-args))
+        process (.start builder)
+        exit-code (.waitFor process)
+        _ (log/infof "Process for task #%s finished" task-id)
+        stderr (slurp (.getErrorStream process))
+        stdout (slurp (.getInputStream process))]
+    {:id task-id :exit-code exit-code :stdout stdout :stderr stderr}))
 
 (defn create-runnable-task [task-id]
   (fn []
     (try
-      (log/info "Running task" task-id "in the executor service...")
-      (db/start-task {:id task-id})
-      ;; TODO Create and start a process with the ProcessBuilder
-      
-      ;; TODO update the task status, return code, stdout, stderr, etc.
+      (let [{:keys [lang code]} (db/get-task {:id task-id})]
+        (log/info "Running task" task-id "in the executor service...")
 
-      (let [[exit-code stdout stderr] [0 nil nil]]
-        (log/info "Ending task" task-id)
-        (db/end-task {:id task-id :exit-code exit-code :stdout stdout :stderr stderr}))
-      (catch Exception ex (log/warn "Exception:" ex)))))
+        ;; Prepare
+        (write-task-script! task-id code)
+        (db/start-task {:id task-id})
+
+        ;; Run
+        (let [process-result (run-process task-id lang)]
+          (db/complete-task process-result))
+
+        ;; Cleanup
+        (delete-task-script! task-id))
+      (catch Exception ex (log/warn "Exception when running task:" ex)))))
 
 (defn create-and-run-task [user-id task-id]
-  ;; TODO update task in db with creation date and status of QUEUED
-
   ;; Create a runnable that can be submitted to the executor
   (let [runnable-task (create-runnable-task task-id)]
     (when @executor-service
-      (db/update-task-status {:id task-id :state "QUEUED"})
-      (.submit @executor-service runnable-task))))
-
+      (.submit @executor-service runnable-task)
+      ;; Update task in db with creation date and status of QUEUED
+      (db/update-task-status {:id task-id :state "QUEUED"}))))
 
 (comment
-  (db/get-task {:id 41})
+  (db/get-task {:id 7})
   (db/start-task {:id 41})
 
   ;; Update the timestamp of a task

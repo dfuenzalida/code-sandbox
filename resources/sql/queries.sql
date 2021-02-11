@@ -65,10 +65,10 @@ UPDATE tasks SET state = :state WHERE id = :id
 -- :doc update the status and started timestamp of a task identified by its id
 UPDATE tasks SET state = 'RUNNING', started = now() WHERE id = :id
 
--- :name end-task :? :1
+-- :name complete-task :? :1
 -- :doc update a task to finished with exit code, stderr and stdout
 UPDATE tasks
-SET state = 'FINISHED', exit_code = :exit-code, stderr = :stderr,
+SET state = 'COMPLETE', exit_code = :exit-code, stderr = :stderr,
 stdout = :stdout, finished = now()
 WHERE id = :id
 
