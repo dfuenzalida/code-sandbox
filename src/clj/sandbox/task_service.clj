@@ -102,6 +102,7 @@
   ;; Update the timestamp of a task
   (require '[hugsql.core :as hug])
   (hug/db-run db/*db* "select * from tasks where id = 41")
+  (hug/db-run db/*db* "delete from tasks where id < 9")
   (hug/db-run db/*db* "UPDATE tasks SET finished = now() where id = 41")
 
   ;; ProcessBuilder
