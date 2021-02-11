@@ -8,7 +8,6 @@
    [reitit.ring.middleware.muuntaja :as muuntaja]
    [reitit.ring.middleware.multipart :as multipart]
    [reitit.ring.middleware.parameters :as parameters]
-   ;; [sandbox.middleware.formats :as formats]
    [sandbox.tokens :as tokens]
    [sandbox.tasks :as tasks]
    [ring.util.http-response :refer :all]
@@ -17,7 +16,7 @@
 (defn service-routes []
   ["/api"
    {:coercion spec-coercion/coercion
-    :muuntaja (m/create) ;; TODO remove formats/instance
+    :muuntaja (m/create)
     :swagger {:id ::api}
     :middleware [;; query-params & form-params
                  parameters/parameters-middleware

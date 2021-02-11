@@ -23,7 +23,7 @@
 (def task-keys
   [:code :created :finished :exit_code :id :lang :name :started :state :stdout :stderr])
 
-(def task-statse
+(def task-states
   [:CREATED :QUEUED :RUNNING :COMPLETE])
 
 (defn get-user-tasks [token]

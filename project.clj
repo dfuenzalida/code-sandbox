@@ -1,7 +1,7 @@
 (defproject sandbox "0.1.0-SNAPSHOT"
 
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+  :description "RESTful service for running code tasks written in Groovy inside a Docker container"
+  :url "https://github.com/dfuenzalida/code-sandbox/"
 
   :dependencies [[ch.qos.logback/logback-classic "1.2.3"]
                  [clojure.java-time "0.3.2"]
@@ -11,10 +11,8 @@
                  [expound "0.8.7"]
                  [funcool/struct "1.4.0"]
                  [luminus-migrations "0.7.1"]
-                 [luminus-transit "0.1.2"]
                  [luminus-undertow "0.1.7"]
                  [luminus/ring-ttl-session "0.3.3"]
-                 [markdown-clj "1.10.5"]
                  [metosin/muuntaja "0.6.7"]
                  [metosin/reitit "0.5.11"]
                  [metosin/ring-http-response "0.9.1"]
@@ -23,10 +21,6 @@
                  [org.clojure/clojure "1.10.2"]
                  [org.clojure/tools.cli "1.0.194"]
                  [org.clojure/tools.logging "1.1.0"]
-                 [org.webjars.npm/bulma "0.9.1"]
-                 [org.webjars.npm/material-icons "0.3.1"]
-                 [org.webjars/webjars-locator "0.40"]
-                 [org.webjars/webjars-locator-jboss-vfs "0.1.0"]
                  [ring-webjars "0.2.0"]
                  [ring/ring-core "1.8.2"]
                  [ring/ring-defaults "0.3.2"]
