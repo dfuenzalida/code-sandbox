@@ -51,7 +51,7 @@ Note that in the output above, the Java version reported is `1.8.0_275`. This is
 
 You can create the JAR file with `lein uberjar`, which will build and package the application as a single Java JAR file that contains everything needed to run the application (provided that you have the JDK 11 installed).
 
-This JAR file can be run directly with `java -jar target/uberjar/sandbox.jar`
+This JAR file can be run directly with `java -jar target/uberjar/sandbox.jar`. The first time you'll need to define the environment variable `DATABASE_URL` and run `java -jar target/uberjar/sandbox.jar migrate` to create the tables. See https://luminusweb.com/docs/migrations.html for details.
 
 ## Service Design and architecture
 
