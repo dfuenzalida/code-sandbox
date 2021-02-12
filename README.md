@@ -12,10 +12,6 @@ Running the code in a container allows simpler management of system resources an
 * Java 11 JDK or newer
 * Leiningen
 
-Optional
-
-* Apache Maven
-
 ## First time setup
 
 * Install the Java 11 JDK and Docker in Ubuntu 20.04, you can run the following:
@@ -51,7 +47,7 @@ Note that in the output above, the Java version reported is `1.8.0_275`. This is
 
 You can create the JAR file with `lein uberjar`, which will build and package the application as a single Java JAR file that contains everything needed to run the application (provided that you have the JDK 11 installed).
 
-This JAR file can be run directly with `java -jar target/uberjar/sandbox.jar`. The first time you'll need to define the environment variable `DATABASE_URL` and run `java -jar target/uberjar/sandbox.jar migrate` to create the tables. See https://luminusweb.com/docs/migrations.html for details.
+This JAR file can be run directly with `java -jar target/uberjar/sandbox.jar`. The first time you'll need to define the environment variable `DATABASE_URL` with a JDBC URL (like `jdbc:h2:./sandbox_dev.db`) and run `java -jar target/uberjar/sandbox.jar migrate` to create the tables. See https://luminusweb.com/docs/migrations.html for details.
 
 ## Service Design and architecture
 
