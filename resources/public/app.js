@@ -73,6 +73,7 @@ function escapeChar(c) {
 
 // Escape all entities in a given string
 function escapeString(s) {
+  if (s === null) return "";
   return s.toString().split("").map(escapeChar).join("");
 }
 
