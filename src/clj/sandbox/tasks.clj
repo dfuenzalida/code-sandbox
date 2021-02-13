@@ -1,24 +1,21 @@
 (ns sandbox.tasks
-  (:require [clojure.tools.logging :as log]
-            [clojure.string :refer [capitalize split]]
+  (:require [clojure.string :refer [capitalize split]]
+            [sandbox.db.core :as db]
             [sandbox.task-service :as ts]
-            [sandbox.tokens :as tokens]
-            [sandbox.db.core :as db]))
+            [sandbox.tokens :as tokens]))
 
 (defn pascal-case
   "Produces a pascalCaseString out of another string"
   [s]
-  (let [[fst & rst] (split s #"[\W_]")]
-    (reduce str fst (map capitalize rst))))
+  (when s
+    (let [[fst & rst] (split s #"[\W_]")]
+      (reduce str fst (map capitalize rst)))))
 
 (defn pascal-keys
   "Given a map with keys on :kebab-case into keys in :pascalCase"
   [m]
   (->> (map (fn [[k v]] [(-> k name pascal-case keyword) v]) m)
        (into {})))
-
-;; (pascal-case "words separated_by-things")
-;; (pascal-keys {:one-two_three 123 :four-five 45})
 
 (def task-keys
   [:code :created :finished :exit_code :id :lang :name :started :state :stdout :stderr])

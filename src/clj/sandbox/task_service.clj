@@ -4,7 +4,7 @@
             [mount.core :as mount]
             [sandbox.db.core :as db])
   (:import [java.nio.file Files Paths]
-           [java.util.concurrent Executors ExecutorService]))
+           java.util.concurrent.Executors))
 
 ;; TODO move to config file
 (def timeout 10)
@@ -87,11 +87,16 @@
         (delete-task-script! task-id))
       (catch Exception ex (log/warn "Exception when running task:" ex)))))
 
+;; extracted to separate function for simpler mocking
+(defn submit-task [runnable-task]
+  (when @executor-service
+    (.submit @executor-service runnable-task)))
+
 (defn create-and-run-task [user-id task-id]
   ;; Create a runnable that can be submitted to the executor
   (let [runnable-task (create-runnable-task task-id)]
     (when @executor-service
-      (.submit @executor-service runnable-task)
+      (submit-task runnable-task)
       ;; Update task in db with creation date and status of QUEUED
       (db/update-task-status {:id task-id :state "QUEUED"}))))
 

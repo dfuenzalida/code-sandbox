@@ -1,7 +1,7 @@
 (ns sandbox.tokens
   (:require [clojure.tools.logging :as log]
             [sandbox.db.core :as db])
-  (:import [java.util Date UUID]))
+  (:import java.util.UUID))
 
 (defn create-token-for-user [username]
   (log/info "Creating token for:" username)

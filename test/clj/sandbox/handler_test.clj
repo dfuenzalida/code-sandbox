@@ -28,10 +28,21 @@
 
   (testing "services"
 
-    (testing "success"
+    (testing "tokens"
       (let [response ((app) (-> (request :post "/api/tokens")
                                 (json-body {:username "demo@example.com", :password "dummy"})))]
         (is (= 200 (:status response)))
-        (is (= [:token] (keys (m/decode-response-body response))))))
+        (is (= [:token] (keys (m/decode-response-body response)))))
 
+      (let [response ((app) (-> (request :post "/api/tokens")
+                                (json-body {:username "invalid-user", :password "dummy"})))]
+        (is (= 404 (:status response)))
+        (is (= {:error "Username not found"} (m/decode-response-body response))))
+
+      (let [response ((app) (-> (request :post "/api/tokens")
+                                (json-body {:no-username "invalid-user", :no-password "dummy"})))]
+        (is (= 400 (:status response)))
+        #_(is (= {:error "Username not found"} (m/decode-response-body response))))
+
+      )
     ))
