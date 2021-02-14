@@ -2,18 +2,22 @@
   (:require [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [mount.core :as mount]
+            [sandbox.config :refer [env]]
             [sandbox.db.core :as db])
   (:import [java.nio.file Files Paths]
            java.util.concurrent.Executors))
 
-;; TODO move to config file
-(def timeout 10)
-(def pool-size 3)
+(defn timeout []
+  (or (-> env :timeout) 10))
+
+(defn pool-size []
+  (or (-> env :pool-size) 3))
+
 (def executor-service (atom nil))
 
 (defn create-service []
-  (log/infof "Creating a fixed pool of %d executors for tasks" pool-size)
-  (reset! executor-service (Executors/newFixedThreadPool pool-size)))
+  (log/infof "Creating a fixed pool of %d executors for tasks" (pool-size))
+  (reset! executor-service (Executors/newFixedThreadPool (pool-size))))
 
 (defn stop-service []
   (when @executor-service
@@ -40,7 +44,7 @@
 (defn process-args [task-id lang]
   (let [volume (format "%s:/groovyScripts:ro" (task-dir task-id))]
     ["docker" "run" "--rm" "--network" "host" "-v" volume
-     "-w" "/groovyScripts" "groovy" "timeout" (str timeout)
+     "-w" "/groovyScripts" "groovy" "timeout" (str (timeout))
      lang "/groovyScripts/script.groovy"]))
 
 (defn delete-task-script! [task-id]
