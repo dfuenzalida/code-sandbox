@@ -9,7 +9,7 @@ Running the code in a container allows simpler management of system resources an
 ## Requisites
 
 * Docker and the `groovy` image from Docker Hub
-* Java 11 JDK or newer
+* Java 8 JDK or newer (JDK 11 or newer recommended)
 * Leiningen
 
 ## First time setup
@@ -109,7 +109,7 @@ println "OUT:$sout\n\nERR:$err"
 ... running the latest version of the container and using current, patched version of the JDK and Docker helps to prevent this scenario
 
 * **Changing the Database**:
-    * Running multiple instances of the service would require some changes: each instance would have to share some shared storage for the task information. An option could be to change the storage to another database supported by JPA (eg. MySQL or Postgres) and add support for it by adding the required JDBC driver in the `pom.xml` file and configuring the JDBC properties in the `application.properties` file. Using other persistance options such as Redis is also possible but would require code changes.
+    * Running multiple instances of the service would require some changes: each instance would have to share some shared storage for the task information. The current migration files were written for the H2 database.
 
 * **Scaling the service**:
     * The service launches containers but would need some work to be *containerized* itself. There are some options to implement something like "docker-in-docker" like the `docker.sock` approach on this post: https://devopscube.com/run-docker-in-docker/. With some extra effort, you could containerize CodeSandbox and be able to use tools like Docker compose or Kubernetes to launch as many instances as needed.
@@ -119,7 +119,7 @@ println "OUT:$sout\n\nERR:$err"
 In the example below, we send a POST request to the `/api/tokens` endpoint and extract the token out of the response, saving it into the `APITOKEN` environment variable:
 
 ```
-export APITOKEN=`curl --no-progress-meter -X POST http://localhost:8080/api/tokens -H "Content-type: application/json" -d '{"username":"denis", "password":"SECRET!"}' | awk -F'"' '{ print $4 }'`
+export APITOKEN=`curl --no-progress-meter -X POST http://localhost:8080/api/tokens -H "Content-type: application/json" -d '{"username":"demo@example.com", "password":"SECRET!"}' | awk -F'"' '{ print $4 }'`
 
 echo $APITOKEN
 ```
