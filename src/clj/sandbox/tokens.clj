@@ -1,11 +1,16 @@
 (ns sandbox.tokens
   (:require [clojure.tools.logging :as log]
+            [struct.core :as st]
             [sandbox.db.core :as db])
   (:import java.util.UUID))
 
+(def token-schema
+  [[:username st/required st/string]
+   [:password st/required st/string]])
+
 (defn create-token-for-user [username]
   (log/info "Creating token for:" username)
-  (let [token   (str (UUID/randomUUID))]
+  (let [token (str (UUID/randomUUID))]
     (when-let [user_id (-> {:email username} db/get-user-by-email :id)]
       (db/create-token! {:user_id user_id :token token})
       (log/info "Token created successfully")

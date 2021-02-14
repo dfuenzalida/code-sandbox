@@ -2,7 +2,23 @@
   (:require [clojure.string :refer [capitalize split]]
             [sandbox.db.core :as db]
             [sandbox.task-service :as ts]
-            [sandbox.tokens :as tokens]))
+            [sandbox.tokens :as tokens]
+            [struct.core :as st]))
+
+(def valid-langs
+  {:message "lang must be one of: 'groovy', 'perl' or 'echo'"
+   :optional true
+   :validate #{"groovy" "perl" "echo"}})
+
+(def code-size
+  {:message "Code must be between 1 and 64K in size"
+   :optional true
+   :validate #(let [size (.length %)] (< 1 size (* 64 1024)))})
+
+(def task-schema
+  [[:name st/required st/string]
+   [:code st/required st/string code-size]
+   [:lang st/required st/string valid-langs]])
 
 (defn pascal-case
   "Produces a pascalCaseString out of another string"
@@ -29,7 +45,6 @@
       (->> (map #(select-keys % task-keys) tasks)
            (mapv pascal-keys)))))
 
-;; TODO implement task validation w/schema
 (defn create-task [token m]
   (when-let [user_id (->> {:token token} db/get-token :user_id)]
     (let [task (merge m {:user_id user_id :state "CREATED"})

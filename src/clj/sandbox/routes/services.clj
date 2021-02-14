@@ -1,17 +1,17 @@
 (ns sandbox.routes.services
-  (:require
-   [muuntaja.core :as m]
-   [reitit.swagger :as swagger]
-   [reitit.swagger-ui :as swagger-ui]
-   [reitit.ring.coercion :as coercion]
-   [reitit.coercion.spec :as spec-coercion]
-   [reitit.ring.middleware.muuntaja :as muuntaja]
-   [reitit.ring.middleware.multipart :as multipart]
-   [reitit.ring.middleware.parameters :as parameters]
-   [sandbox.tokens :as tokens]
-   [sandbox.tasks :as tasks]
-   [ring.util.http-response :refer :all]
-   [clojure.java.io :as io]))
+  (:require [clojure.string :refer [split]]
+            [muuntaja.core :as m]
+            [reitit.coercion.spec :as spec-coercion]
+            [reitit.ring.coercion :as coercion]
+            [reitit.ring.middleware.multipart :as multipart]
+            [reitit.ring.middleware.muuntaja :as muuntaja]
+            [reitit.ring.middleware.parameters :as parameters]
+            [reitit.swagger :as swagger]
+            [reitit.swagger-ui :as swagger-ui]
+            [ring.util.http-response :refer :all]
+            [sandbox.tasks :as tasks]
+            [sandbox.tokens :as tokens]
+            [struct.core :as st]))
 
 (defn service-routes []
   ["/api"
@@ -45,8 +45,8 @@
 
     ["/api-docs/*"
      {:get (swagger-ui/create-swagger-ui-handler
-             {:url "/api/swagger.json"
-              :config {:validator-url nil}})}]]
+            {:url "/api/swagger.json"
+             :config {:validator-url nil}})}]]
 
    ["/ping"
     {:get (constantly (ok {:message "pong"}))}]
@@ -54,10 +54,13 @@
    ["/tokens"
     {:post {:summary "Creates a new token for using the other APIs"
             :parameters {:body {:username string? :password string?}}
-            :handler (fn [{{{:keys [username password]} :body} :parameters}]
-                       (if-let [token (tokens/create-token-for-user username)]
-                         {:status 200 :body {:token token}}
-                         {:status 404 :body {:error "Username not found"}}))}
+            :handler (fn [{{:keys [username password] :as body} :body-params}]
+                       (let [[errors _] (st/validate body tokens/token-schema)]
+                         (if errors
+                           {:status 400 :body {:error errors}}
+                           (if-let [token (tokens/create-token-for-user username)]
+                             {:status 200 :body {:token token}}
+                             {:status 404 :body {:error "Username not found"}}))))}
      }]
 
    ["/tasks"
@@ -80,10 +83,13 @@
                        (let [{{:strs [authorization]} :headers} req
                              task-req (-> req :parameters :body)]
                          (if authorization
-                           (let [token (last (clojure.string/split authorization #" "))]
-                             (if-let [created (tasks/create-task token task-req)]
-                               {:status 200 :body created}
-                               {:status 404 :body {:error "Invalid token"}}))
+                           (let [token (last (split authorization #" "))
+                                 [errors _] (st/validate task-req tasks/task-schema)]
+                             (if errors
+                               {:status 400 :body {:error errors}}
+                               (if-let [created (tasks/create-task token task-req)]
+                                 {:status 200 :body created}
+                                 {:status 404 :body {:error "Invalid token"}})))
                            {:status 403 :body {:error "Token missing"}})))}
      }]
 
