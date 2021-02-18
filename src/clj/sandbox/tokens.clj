@@ -1,7 +1,7 @@
 (ns sandbox.tokens
   (:require [clojure.tools.logging :as log]
-            [struct.core :as st]
-            [sandbox.db.core :as db])
+            [sandbox.db.core :as db]
+            [struct.core :as st])
   (:import java.util.UUID))
 
 (def token-schema
