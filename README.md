@@ -40,14 +40,35 @@ Note that in the output above, the Java version reported is `1.8.0_275`. This is
 
 ## Running locally
 
-* You can run project from the command line with `lein run`
-* Once the service is up and running, it will be listening for requests on port 3000 by default. You can submit task requests using tools like Postman or cURL (see examples below), or use the browser-based UI by opening the following URL: http://localhost:3000/ (enter the user `demo@example.com` with no password)
+If running from the command line, Define the environment variable `DATABASE_URL`, like this:
+
+```
+$ export DATABASE_URL="jdbc:h2:./demo.db"
+```
+
+Run the migrations to create the tables in the database:
+
+```
+$ lein run migrate
+2021-02-17 22:44:54,804 [main] INFO  migratus.core - Starting migrations
+...
+
+2021-02-17 22:44:55,197 [main] INFO  migratus.core - Ending migrations
+```
+
+Finally, you can run the service with `lein run`. It will start on port 3000 by default, you can override this by defining the environment variable `PORT` to some other number.
+
+* Once the service is up and running, you can submit task requests using tools like Postman or cURL (see examples below), or use the browser-based UI by opening the following URL: http://localhost:3000/ (enter the user `demo@example.com` with any non-blank password)
+
+### Running from the REPL
+
+You can run the service by loading the project in an editor that supports nREPL (eg. Emacs + CIDER, or VSCode + Calva). You can call the functions `(start)`, `(migrate)` to launch the web server and running the migrations to create the database. See the contents of the file `env/dev/clj/user.clj` for more details.
 
 ## Packaging
 
 You can create the JAR file with `lein uberjar`, which will build and package the application as a single Java JAR file that contains everything needed to run the application (provided that you have the JDK 11 installed).
 
-This JAR file can be run directly with `java -jar target/uberjar/sandbox.jar`. The first time you'll need to define the environment variable `DATABASE_URL` with a JDBC URL (like `jdbc:h2:./sandbox_dev.db`) and run `java -jar target/uberjar/sandbox.jar migrate` to create the tables. See https://luminusweb.com/docs/migrations.html for details.
+This JAR file can be run directly with `java -jar target/uberjar/sandbox.jar`. Before running the JAR you'll need to define the environment variable `DATABASE_URL` with a JDBC URL (like `jdbc:h2:./sandbox_dev.db`) and run `java -jar target/uberjar/sandbox.jar migrate` to create the tables. See https://luminusweb.com/docs/migrations.html for details.
 
 ## Service Design and architecture
 
